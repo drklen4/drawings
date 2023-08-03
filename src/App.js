@@ -52,7 +52,7 @@ class App extends React.Component {
                 }
             }
 
-            // bounce from other ball if both balls aer closed and continue to get closer
+            // bounce from other ball if both balls are closed and continue to get closer
             function doBounceFromOtherBall(ball2) {
                 let distance = Math.sqrt(Math.pow(ball.x - ball2.x, 2) + Math.pow(ball.y - ball2.y, 2));
 
