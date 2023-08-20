@@ -10,6 +10,15 @@ class App extends React.Component {
         const canvas = this.canvasRef.current;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+
+        // set squares width and x
+        const { squares } = this.props;
+        for (let i=0; i < squares.length; i++) {
+            let width = canvas.width/squares.length;
+            squares[i].x = i*width;
+            squares[i].width = width;
+        }
+
         this.drawBalls();
     }
 
@@ -18,10 +27,19 @@ class App extends React.Component {
     }
 
     drawBalls() {
-        const { balls } = this.props;
+        const { balls, squares } = this.props;
         const canvas = this.canvasRef.current;
         const context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw squares
+        squares.forEach(square => {
+            if (square.visible) {
+                context.fillStyle = square.color;
+                context.strokeRect(square.x, square.y, square.width, square.height);
+                context.fillRect(square.x, square.y, square.width, square.height);
+            }
+        })
 
 
         balls.forEach(ball => {
@@ -71,7 +89,7 @@ class App extends React.Component {
                 }
             }
 
-            // check if bounce from walls is needed
+            // move ball and check if bounce from walls is needed
             if (ball.toRight && ball.toBottom) {
                 ball.x += ball.dx;
                 ball.y += ball.dy;
@@ -111,10 +129,13 @@ class App extends React.Component {
                 }
             }
 
-            // check if bounce from each one of other balls is needed
-            balls2.forEach(ball2 => {
-                doBounceFromOtherBall(ball2);
-            })
+            // bounce from square
+            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width))
+            if (closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
+                ball.toBottom = true;
+                closestSquareByX.visible = false;
+            }
+            console.log(squares)
 
         });
     }
