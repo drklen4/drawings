@@ -134,8 +134,14 @@ class App extends React.Component {
             if (closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
                 ball.toBottom = true;
                 closestSquareByX.visible = false;
+            } else {
+                let closestSquareBySide = squares.find(square => ((ball.x + ball.radius >= square.x) && (ball.x - ball.radius <= square.x + square.width)))
+                if (closestSquareBySide.visible && (ball.y - ball.radius <= closestSquareBySide.y + closestSquareBySide.height)) {
+                    console.log(closestSquareBySide)
+                    ball.toRight = !ball.toRight;
+                    closestSquareBySide.visible = false;
+                }
             }
-            console.log(squares)
 
         });
     }

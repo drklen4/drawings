@@ -6,10 +6,10 @@ import Ball from './components/Ball';
 import {ballHelper} from './helpers';
 import Square from "./components/Square";
 
-const balls = [new Ball(`rgb(2, 44, 181)`, 50, ballHelper.getAngle(), 3)];
+const balls = [new Ball(`rgb(2, 44, 181)`, 20, ballHelper.getAngle(), 3, 120)];
 
 const squares = [];
-for (let i=0; i<6; i++) {
+for (let i=0; i<10; i++) {
     squares.push(new Square(0, 0, 0))
 }
 
