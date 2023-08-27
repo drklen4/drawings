@@ -136,7 +136,7 @@ class App extends React.Component {
 
             // bounce from square
             let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width) && (square.y === square.height*(rowNumber - 1)))
-            if (closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
+            if (closestSquareByX && closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
                 ball.toBottom = true;
                 closestSquareByX.visible = false;
             } else {
