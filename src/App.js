@@ -12,11 +12,16 @@ class App extends React.Component {
         canvas.height = window.innerHeight;
 
         // set squares width and x
-        const { squares } = this.props;
-        for (let i=0; i < squares.length; i++) {
-            let width = canvas.width/squares.length;
-            squares[i].x = i*width;
-            squares[i].width = width;
+        const {squares, rowNumber} = this.props;
+        let oneRowLength = squares.length / rowNumber;
+        let width = canvas.width / oneRowLength;
+
+        for (let j = 0; j < rowNumber; j++) {
+            for (let i = 0; i < oneRowLength; i++) {
+                squares[i+j*oneRowLength].x = i * width;
+                squares[i+j*oneRowLength].width = width;
+                squares[i+j*oneRowLength].y = squares[i+j*oneRowLength].y + j*squares[i+j*oneRowLength].height;
+            }
         }
 
         this.drawBalls();
@@ -27,7 +32,7 @@ class App extends React.Component {
     }
 
     drawBalls() {
-        const { balls, squares } = this.props;
+        const {balls, squares, rowNumber} = this.props;
         const canvas = this.canvasRef.current;
         const context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -74,7 +79,7 @@ class App extends React.Component {
             function doBounceFromOtherBall(ball2) {
                 let distance = Math.sqrt(Math.pow(ball.x - ball2.x, 2) + Math.pow(ball.y - ball2.y, 2));
 
-                if (distance <= ball.radius + ball2.radius ){
+                if (distance <= ball.radius + ball2.radius) {
                     //supposed next distance if no bounce will happen
                     let spx1 = ball.toRight ? (ball.x + ball.dx) : (ball.x - ball.dx);
                     let spy1 = ball.toBottom ? (ball.y + ball.dy) : (ball.y - ball.dy);
@@ -130,13 +135,20 @@ class App extends React.Component {
             }
 
             // bounce from square
-            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width))
+            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width) && (square.y === square.height*(rowNumber - 1)))
             if (closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
                 ball.toBottom = true;
                 closestSquareByX.visible = false;
             } else {
-                let closestSquareBySide = squares.find(square => ((ball.x + ball.radius >= square.x) && (ball.x - ball.radius <= square.x + square.width)))
-                if (closestSquareBySide.visible && (ball.y - ball.radius <= closestSquareBySide.y + closestSquareBySide.height)) {
+                let closestSquareBySide = squares.find(square => (
+                    (ball.x + ball.radius >= square.x) &&
+                    (ball.x - ball.radius <= square.x + square.width) &&
+                    (ball.y >= square.y) &&
+                    (ball.y <= square.y + square.height)
+                    )
+                )
+
+                if (closestSquareBySide && closestSquareBySide.visible && (ball.y - ball.radius <= closestSquareBySide.y + closestSquareBySide.height)) {
                     console.log(closestSquareBySide)
                     ball.toRight = !ball.toRight;
                     closestSquareBySide.visible = false;
