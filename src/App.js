@@ -1,4 +1,5 @@
 import React from "react";
+import Square from "./components/Square";
 
 class App extends React.Component {
     constructor(props) {
@@ -32,10 +33,11 @@ class App extends React.Component {
     }
 
     drawBalls() {
-        const {balls, squares, rowNumber} = this.props;
+        const {balls, squares, rowNumber, stopGame} = this.props;
         const canvas = this.canvasRef.current;
         const context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
+
 
         // draw squares
         squares.forEach(square => {
@@ -45,6 +47,13 @@ class App extends React.Component {
                 context.fillRect(square.x, square.y, square.width, square.height);
             }
         })
+
+        //draw paddle
+        var paddle = new Square(450, canvas.height - 10, 1000);
+        paddle.height = 10;
+        context.fillStyle = `rgb(2, 160, 255)`;
+        context.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 
 
         balls.forEach(ball => {
@@ -63,7 +72,7 @@ class App extends React.Component {
             // bounce from walls
             function doBounceIfNeeded() {
                 let rightTouch = ball.x >= canvas.width - ball.radius;
-                let bottomTouch = ball.y >= canvas.height - ball.radius;
+                let bottomTouch = (ball.y >= canvas.height - ball.radius) && (ball.x >= paddle.x) && (ball.x <= paddle.x + paddle.width);
                 let leftTouch = ball.x <= ball.radius;
                 let topTouch = ball.y <= ball.radius;
 
@@ -73,26 +82,11 @@ class App extends React.Component {
                 if (bottomTouch || topTouch) {
                     ball.toBottom = !ball.toBottom;
                 }
-            }
-
-            // bounce from other ball if both balls are closed and continue to get closer
-            function doBounceFromOtherBall(ball2) {
-                let distance = Math.sqrt(Math.pow(ball.x - ball2.x, 2) + Math.pow(ball.y - ball2.y, 2));
-
-                if (distance <= ball.radius + ball2.radius) {
-                    //supposed next distance if no bounce will happen
-                    let spx1 = ball.toRight ? (ball.x + ball.dx) : (ball.x - ball.dx);
-                    let spy1 = ball.toBottom ? (ball.y + ball.dy) : (ball.y - ball.dy);
-                    let spx2 = ball2.toRight ? (ball2.x + ball2.dx) : (ball2.x - ball2.dx);
-                    let spy2 = ball2.toBottom ? (ball2.y + ball2.dy) : (ball2.y - ball2.dy);
-                    let spDistance = Math.sqrt(Math.pow(spx1 - spx2, 2) + Math.pow(spy1 - spy2, 2));
-
-                    if (spDistance <= distance) {
-                        ball.toRight = !ball.toRight;
-                        ball.toBottom = !ball.toBottom;
-                    }
+                if (ball.y - ball.radius > canvas.height + 5) {
+                    stopGame[0] = true;
                 }
             }
+
 
             // move ball and check if bounce from walls is needed
             if (ball.toRight && ball.toBottom) {
@@ -100,7 +94,7 @@ class App extends React.Component {
                 ball.y += ball.dy;
                 if (
                     canvas.width - ball.x <= ball.radius ||
-                    canvas.height - ball.y <= ball.radius
+                    canvas.height - paddle.height - ball.y <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
@@ -109,7 +103,7 @@ class App extends React.Component {
                 ball.y += ball.dy;
                 if (
                     ball.x <= ball.radius ||
-                    canvas.height - ball.y <= ball.radius
+                    canvas.height - paddle.height - ball.y <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
@@ -149,7 +143,6 @@ class App extends React.Component {
                 )
 
                 if (closestSquareBySide && closestSquareBySide.visible && (ball.y - ball.radius <= closestSquareBySide.y + closestSquareBySide.height)) {
-                    console.log(closestSquareBySide)
                     ball.toRight = !ball.toRight;
                     closestSquareBySide.visible = false;
                 }
