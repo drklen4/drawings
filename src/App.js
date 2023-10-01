@@ -73,6 +73,11 @@ class App extends React.Component {
         context.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
         context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 
+        // draw text with number of hits
+        context.fillStyle = `rgb(17, 17, 17)`;
+        context.font = `20px Verdana`;
+        context.fillText('Your score: ' + squares.filter(s => !s.visible).length, canvas.width- 300, canvas.height - 150);
+
 
         balls.forEach(ball => {
             context.fillStyle = ball.color;
