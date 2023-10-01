@@ -3,7 +3,7 @@ export default class Square {
         this.x = x;
         this.y = y;
         this.width = width;
-        this.height = 100;
+        this.height = 80;
         this.color = `rgba(80, 80, 76, 0.58)`;
         this.visible = true;
     }

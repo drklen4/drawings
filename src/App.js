@@ -1,5 +1,14 @@
 import React from "react";
-import Square from "./components/Square";
+
+const handleKeyDown = (event, paddle, width) => {
+    if (event.key === 'ArrowLeft') {
+        paddle.x = paddle.x - 20
+        paddle.x = (paddle.x < 0) ? 0 : (paddle.x);
+    } else if (event.key === 'ArrowRight') {
+        paddle.x = paddle.x + 20
+        paddle.x = (paddle.x + paddle.width > width) ? (width - paddle.width) : (paddle.x)
+    }
+}
 
 class App extends React.Component {
     constructor(props) {
@@ -9,32 +18,42 @@ class App extends React.Component {
 
     componentDidMount() {
         const canvas = this.canvasRef.current;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth - 40;
+        canvas.height = window.innerHeight - 40;
 
         // set squares width and x
-        const {squares, rowNumber} = this.props;
+        const {squares, rowNumber, paddle} = this.props;
         let oneRowLength = squares.length / rowNumber;
         let width = canvas.width / oneRowLength;
 
         for (let j = 0; j < rowNumber; j++) {
             for (let i = 0; i < oneRowLength; i++) {
-                squares[i+j*oneRowLength].x = i * width;
-                squares[i+j*oneRowLength].width = width;
-                squares[i+j*oneRowLength].y = squares[i+j*oneRowLength].y + j*squares[i+j*oneRowLength].height;
+                squares[i + j * oneRowLength].x = i * width;
+                squares[i + j * oneRowLength].width = width;
+                squares[i + j * oneRowLength].y = squares[i + j * oneRowLength].y + j * squares[i + j * oneRowLength].height;
             }
         }
+
+        console.log('listenerAdded!')
+        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle, canvas.width));
 
         this.drawBalls();
     }
 
     componentDidUpdate() {
+        const {paddle} = this.props;
+        const canvas = this.canvasRef.current;
+        canvas.width = window.innerWidth;
+
+
         this.drawBalls();
     }
 
     drawBalls() {
-        const {balls, squares, rowNumber, stopGame} = this.props;
+        const {balls, squares, rowNumber, paddle, stopGame} = this.props;
         const canvas = this.canvasRef.current;
+        canvas.width = window.innerWidth - 40;
+        canvas.height = window.innerHeight - 40;
         const context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -49,9 +68,8 @@ class App extends React.Component {
         })
 
         //draw paddle
-        var paddle = new Square(450, canvas.height - 10, 1000);
-        paddle.height = 10;
-        context.fillStyle = `rgb(2, 160, 255)`;
+        paddle.y = canvas.height - 10;
+        context.fillStyle = paddle.color;
         context.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
         context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 
@@ -129,16 +147,16 @@ class App extends React.Component {
             }
 
             // bounce from square
-            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width) && (square.y === square.height*(rowNumber - 1)))
+            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width) && (square.y === square.height * (rowNumber - 1)))
             if (closestSquareByX && closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
                 ball.toBottom = true;
                 closestSquareByX.visible = false;
             } else {
                 let closestSquareBySide = squares.find(square => (
-                    (ball.x + ball.radius >= square.x) &&
-                    (ball.x - ball.radius <= square.x + square.width) &&
-                    (ball.y >= square.y) &&
-                    (ball.y <= square.y + square.height)
+                        (ball.x + ball.radius >= square.x) &&
+                        (ball.x - ball.radius <= square.x + square.width) &&
+                        (ball.y >= square.y) &&
+                        (ball.y <= square.y + square.height)
                     )
                 )
 
