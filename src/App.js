@@ -165,7 +165,6 @@ class App extends React.Component {
                     closestSquareBySide.visible = false;
                 }
             }
-
         });
     }
 
