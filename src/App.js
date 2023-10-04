@@ -1,10 +1,10 @@
 import React from "react";
 
-const handleKeyDown = (event, paddle, width) => {
-    if (event.key === 'ArrowLeft') {
+const handleKeyDown = (event, paddle, width, leftArrow, rightArrow) => {
+    if (event.key === leftArrow) {
         paddle.x = paddle.x - 20
         paddle.x = (paddle.x < 0) ? 0 : (paddle.x);
-    } else if (event.key === 'ArrowRight') {
+    } else if (event.key === rightArrow) {
         paddle.x = paddle.x + 20
         paddle.x = (paddle.x + paddle.width > width) ? (width - paddle.width) : (paddle.x)
     }
@@ -20,37 +20,26 @@ class App extends React.Component {
         const canvas = this.canvasRef.current;
         canvas.width = window.innerWidth - 40;
         canvas.height = window.innerHeight - 40;
+        const {paddle1, paddle2} = this.props;
 
-        // set squares width and x
-        const {squares, rowNumber, paddle} = this.props;
-        let oneRowLength = squares.length / rowNumber;
-        let width = canvas.width / oneRowLength;
+        console.log('listener 1 Added!')
+        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle1, canvas.width, 'ArrowLeft', 'ArrowRight'));
 
-        for (let j = 0; j < rowNumber; j++) {
-            for (let i = 0; i < oneRowLength; i++) {
-                squares[i + j * oneRowLength].x = i * width;
-                squares[i + j * oneRowLength].width = width;
-                squares[i + j * oneRowLength].y = squares[i + j * oneRowLength].y + j * squares[i + j * oneRowLength].height;
-            }
-        }
-
-        console.log('listenerAdded!')
-        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle, canvas.width));
+        console.log('listener 2 Added!')
+        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle2, canvas.width, 'q', 'e'));
 
         this.drawBalls();
     }
 
     componentDidUpdate() {
-        const {paddle} = this.props;
         const canvas = this.canvasRef.current;
         canvas.width = window.innerWidth;
-
 
         this.drawBalls();
     }
 
     drawBalls() {
-        const {balls, squares, rowNumber, paddle, stopGame} = this.props;
+        const {balls, paddle1, paddle2, stopGame} = this.props;
         const canvas = this.canvasRef.current;
         canvas.width = window.innerWidth - 40;
         canvas.height = window.innerHeight - 40;
@@ -58,25 +47,22 @@ class App extends React.Component {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
 
-        // draw squares
-        squares.forEach(square => {
-            if (square.visible) {
-                context.fillStyle = square.color;
-                context.strokeRect(square.x, square.y, square.width, square.height);
-                context.fillRect(square.x, square.y, square.width, square.height);
-            }
-        })
+        //draw paddles
+        paddle1.y = canvas.height - 10;
+        paddle2.y = 0;
 
-        //draw paddle
-        paddle.y = canvas.height - 10;
-        context.fillStyle = paddle.color;
-        context.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
-        context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        context.fillStyle = paddle1.color;
+        context.strokeRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
+        context.fillRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
+        context.strokeRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
+        context.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
 
-        // draw text with number of hits
+        // draw text players info
         context.fillStyle = `rgb(17, 17, 17)`;
         context.font = `20px Verdana`;
-        context.fillText('Your score: ' + squares.filter(s => !s.visible).length, canvas.width- 300, canvas.height - 150);
+        context.fillText('Player 1', canvas.width - 300, canvas.height - 80);
+        context.fillText('Player 2', canvas.width - 300, 80);
+
 
 
         balls.forEach(ball => {
@@ -86,18 +72,13 @@ class App extends React.Component {
             context.closePath();
             context.fill();
 
-            //other balls
-            let balls2 = balls.filter(ball2 => {
-                return ball !== ball2
-            }).map(ballToMap => ballToMap);
 
-
-            // bounce from walls
+            // bounce from walls and paddles
             function doBounceIfNeeded() {
                 let rightTouch = ball.x >= canvas.width - ball.radius;
-                let bottomTouch = (ball.y >= canvas.height - ball.radius) && (ball.x >= paddle.x) && (ball.x <= paddle.x + paddle.width);
+                let bottomTouch = (ball.y + ball.radius >= canvas.height - ball.radius) && (ball.x >= paddle1.x) && (ball.x <= paddle1.x + paddle1.width);
                 let leftTouch = ball.x <= ball.radius;
-                let topTouch = ball.y <= ball.radius;
+                let topTouch = (ball.y - paddle2.height <= ball.radius) && (ball.x >= paddle2.x) && (ball.x <= paddle2.x + paddle2.width);
 
                 if (rightTouch || leftTouch) {
                     ball.toRight = !ball.toRight;
@@ -107,6 +88,8 @@ class App extends React.Component {
                 }
                 if (ball.y - ball.radius > canvas.height + 5) {
                     stopGame[0] = true;
+                } else if (ball.y + ball.radius < -5) {
+                    stopGame[1] = true;
                 }
             }
 
@@ -117,7 +100,7 @@ class App extends React.Component {
                 ball.y += ball.dy;
                 if (
                     canvas.width - ball.x <= ball.radius ||
-                    canvas.height - paddle.height - ball.y <= ball.radius
+                    canvas.height - paddle1.height - ball.y <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
@@ -126,7 +109,7 @@ class App extends React.Component {
                 ball.y += ball.dy;
                 if (
                     ball.x <= ball.radius ||
-                    canvas.height - paddle.height - ball.y <= ball.radius
+                    canvas.height - paddle1.height - ball.y <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
@@ -135,7 +118,7 @@ class App extends React.Component {
                 ball.y -= ball.dy;
                 if (
                     ball.x <= ball.radius ||
-                    ball.y <= ball.radius
+                    ball.y - paddle2.height <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
@@ -145,31 +128,12 @@ class App extends React.Component {
 
                 if (
                     canvas.width - ball.x <= ball.radius ||
-                    ball.y <= ball.radius
+                    ball.y - paddle2.height <= ball.radius
                 ) {
                     doBounceIfNeeded();
                 }
             }
 
-            // bounce from square
-            let closestSquareByX = squares.find(square => (ball.x >= square.x) && (ball.x < square.x + square.width) && (square.y === square.height * (rowNumber - 1)))
-            if (closestSquareByX && closestSquareByX.visible && (ball.y - ball.radius <= closestSquareByX.y + closestSquareByX.height) && (!ball.toBottom)) {
-                ball.toBottom = true;
-                closestSquareByX.visible = false;
-            } else {
-                let closestSquareBySide = squares.find(square => (
-                        (ball.x + ball.radius >= square.x) &&
-                        (ball.x - ball.radius <= square.x + square.width) &&
-                        (ball.y >= square.y) &&
-                        (ball.y <= square.y + square.height)
-                    )
-                )
-
-                if (closestSquareBySide && closestSquareBySide.visible && (ball.y - ball.radius <= closestSquareBySide.y + closestSquareBySide.height)) {
-                    ball.toRight = !ball.toRight;
-                    closestSquareBySide.visible = false;
-                }
-            }
         });
     }
 
