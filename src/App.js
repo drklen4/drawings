@@ -1,14 +1,47 @@
 import React from "react";
 
-const handleKeyDown = (event, paddle, width, leftArrow, rightArrow) => {
-    if (event.key === leftArrow) {
-        paddle.x = paddle.x - 20
-        paddle.x = (paddle.x < 0) ? 0 : (paddle.x);
-    } else if (event.key === rightArrow) {
-        paddle.x = paddle.x + 20
-        paddle.x = (paddle.x + paddle.width > width) ? (width - paddle.width) : (paddle.x)
+const controller = {
+    'ArrowLeft': false,
+    'ArrowRight': false,
+    'q': false,
+    'e': false
+}
+
+const handleKeyDown = (event) => {
+    switch(event.key) {
+        case 'ArrowLeft':
+            controller['ArrowLeft'] = true;
+            break;
+        case 'ArrowRight':
+            controller['ArrowRight'] = true;
+            break;
+        case 'q':
+            controller['q'] = true;
+            break;
+        case 'e':
+            controller['e'] = true;
+            break;
     }
 }
+
+const handleKeyUp = (event) => {
+    switch(event.key) {
+        case 'ArrowLeft':
+            controller['ArrowLeft'] = false;
+            break;
+        case 'ArrowRight':
+            controller['ArrowRight'] = false;
+            break;
+        case 'q':
+            controller['q'] = false;
+            break;
+        case 'e':
+            controller['e'] = false;
+            break;
+    }
+}
+
+
 
 class App extends React.Component {
     constructor(props) {
@@ -22,11 +55,11 @@ class App extends React.Component {
         canvas.height = window.innerHeight - 40;
         const {paddle1, paddle2} = this.props;
 
-        console.log('listener 1 Added!')
-        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle1, canvas.width, 'ArrowLeft', 'ArrowRight'));
+        console.log('listener Key Down added!')
+        document.addEventListener('keydown', (event) => handleKeyDown(event));
 
-        console.log('listener 2 Added!')
-        document.addEventListener('keydown', (event) => handleKeyDown(event, paddle2, canvas.width, 'q', 'e'));
+        console.log('listener Key Up added!')
+        document.addEventListener('keyup', (event) => handleKeyUp(event));
 
         this.drawBalls();
     }
@@ -63,7 +96,24 @@ class App extends React.Component {
         context.fillText('Player 1', canvas.width - 300, canvas.height - 80);
         context.fillText('Player 2', canvas.width - 300, 80);
 
+        // move paddles
+        function movePaddlesIfNeeded() {
+            if (controller['ArrowLeft']) {
+                paddle1.x = paddle1.x - 2
+                paddle1.x = (paddle1.x < 0) ? 0 : (paddle1.x);
+            } else if (controller['ArrowRight']) {
+                paddle1.x = paddle1.x + 2
+                paddle1.x = (paddle1.x + paddle1.width > canvas.width) ? (canvas.width - paddle1.width) : (paddle1.x)
+            }
 
+            if (controller['q']) {
+                paddle2.x = paddle2.x - 2
+                paddle2.x = (paddle2.x < 0) ? 0 : (paddle2.x);
+            } else if (controller['e']) {
+                paddle2.x = paddle2.x + 2
+                paddle2.x = (paddle2.x + paddle2.width > canvas.width) ? (canvas.width - paddle2.width) : (paddle2.x)
+            }
+        }
 
         balls.forEach(ball => {
             context.fillStyle = ball.color;
@@ -92,7 +142,6 @@ class App extends React.Component {
                     stopGame[1] = true;
                 }
             }
-
 
             // move ball and check if bounce from walls is needed
             if (ball.toRight && ball.toBottom) {
@@ -133,8 +182,8 @@ class App extends React.Component {
                     doBounceIfNeeded();
                 }
             }
-
         });
+        movePaddlesIfNeeded();
     }
 
     render() {
