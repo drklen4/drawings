@@ -29,7 +29,7 @@ const refreshIntervalId = setInterval(() => {
 });
 
 function createPaddle() {
-    const paddle = new Square(150, 900, 550);
+    const paddle = new Square(150, 900, 300);
     paddle.height = 10;
     paddle.color = `rgb(2, 160, 255)`;
     return paddle;
